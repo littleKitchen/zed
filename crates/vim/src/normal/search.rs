@@ -1407,7 +1407,7 @@ mod test {
     }
 
     #[gpui::test]
-    async fn test_search_highlights_persist_after_escape(cx: &mut gpui::TestAppContext) {
+    async fn test_search_escape_clears_highlights(cx: &mut gpui::TestAppContext) {
         let mut cx = VimTestContext::new(cx, true).await;
         cx.set_state("ˇhello world\nhello again\nhello there\n", Mode::Normal);
 
@@ -1421,19 +1421,39 @@ mod test {
             assert_eq!(3, highlights.len(), "Expected 3 highlights for 'hello'");
         });
 
-        // Press Escape to dismiss search bar - highlights should persist in vim mode
+        // Press Escape to dismiss search bar - highlights should be cleared (default behavior)
         cx.simulate_keystrokes("escape");
         cx.run_until_parked();
 
-        // Verify highlights still exist after Escape (like real Vim)
+        // Verify highlights are cleared after Escape (same as non-vim mode)
         cx.update_editor(|editor, window, cx| {
             let highlights = editor.all_text_background_highlights(window, cx);
             assert_eq!(
-                3,
+                0,
                 highlights.len(),
-                "Highlights should persist after Escape in vim mode"
+                "Highlights should be cleared after Escape"
             );
         });
+    }
+
+    #[gpui::test]
+    async fn test_nohlsearch_clears_highlights(cx: &mut gpui::TestAppContext) {
+        let mut cx = VimTestContext::new(cx, true).await;
+        cx.set_state("ˇhello world\nhello again\nhello there\n", Mode::Normal);
+
+        // Search with * to highlight all matches
+        cx.simulate_keystrokes("*");
+        cx.run_until_parked();
+
+        // Verify highlights exist
+        cx.update_editor(|editor, window, cx| {
+            let highlights = editor.all_text_background_highlights(window, cx);
+            assert_eq!(3, highlights.len(), "Expected 3 highlights for 'hello'");
+        });
+
+        // Press Enter to dismiss search bar but keep highlights (search submitted)
+        cx.simulate_keystrokes("enter");
+        cx.run_until_parked();
 
         // Use :nohlsearch to clear highlights
         cx.simulate_keystrokes(": n o h l enter");

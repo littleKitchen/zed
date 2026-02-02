@@ -855,15 +855,7 @@ impl BufferSearchBar {
     }
 
     pub fn dismiss(&mut self, _: &Dismiss, window: &mut Window, cx: &mut Context<Self>) {
-        // In vim/helix mode, preserve search highlights when dismissing (like real Vim).
-        // Use :nohlsearch to clear highlights explicitly.
-        let vim_mode_enabled = vim_mode_setting::VimModeSetting::try_get(cx)
-            .map(|s| s.0)
-            .unwrap_or(false)
-            || vim_mode_setting::HelixModeSetting::try_get(cx)
-                .map(|s| s.0)
-                .unwrap_or(false);
-        self.dismiss_internal(!vim_mode_enabled, window, cx);
+        self.dismiss_internal(true, window, cx);
     }
 
     pub fn dismiss_keeping_highlights(
