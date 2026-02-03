@@ -179,10 +179,6 @@ actions!(
         ClearOperators,
         /// Clears the exchange register.
         ClearExchange,
-        /// Cancels the current search/operation while preserving search highlights.
-        /// Users can bind this to Escape to get Vim-like behavior where highlights
-        /// persist until :nohlsearch is run.
-        Cancel,
         /// Inserts a tab character.
         Tab,
         /// Inserts a newline.
@@ -439,14 +435,6 @@ pub fn init(cx: &mut App) {
             vim.entity.update(cx, |_, cx| {
                 cx.defer_in(window, |vim, window, cx| vim.search_submit(window, cx))
             })
-        });
-        workspace.register_action(|_, _: &Cancel, window, cx| {
-            // Vim-style cancel: dismiss search bar but preserve highlights.
-            // Users can bind escape to this action to get Vim-like behavior.
-            window.dispatch_action(
-                search::buffer_search::DismissKeepingHighlights.boxed_clone(),
-                cx,
-            );
         });
         workspace.register_action(|_, _: &GoToTab, window, cx| {
             let count = Vim::take_count(cx);
